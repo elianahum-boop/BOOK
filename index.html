@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>רשימות דינה - סטודיו לכתיבה וסידור רעיונות</title>
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/index.css">
+    <!-- SortableJS for Drag & Drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon">💎</div>
+                <div class="logo-text">
+                    <h1>רשימות דינה</h1>
+                    <span>סטודיו לכתיבה ובניית עלילה</span>
+                </div>
+            </div>
+
+            <nav class="nav-tabs">
+                <button class="tab-btn active" data-tab="ideas">💡 לוח רעיונות</button>
+                <button class="tab-btn" data-tab="outliner">🗺️ מסדר עלילה ופרקים</button>
+                <button class="tab-btn" data-tab="characters">👥 תנ"ך דמויות</button>
+                <button class="tab-btn" data-tab="editor">✍️ עורך כתיבה</button>
+            </nav>
+
+            <div class="header-actions">
+                <div id="saveIndicator" class="save-status">✨ מוכן לעבודה</div>
+                
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn" onclick="window.ExportImport.exportToWordDocx()" title="הורד כקובץ Word (.docx)">
+                        📄 ייצוא לוורד
+                    </button>
+                    <button class="btn" onclick="window.ExportImport.exportToMarkdown()" title="הורד כקובץ Markdown">
+                        📝 ייצוא למרקאפ
+                    </button>
+                    <button class="btn btn-gold" onclick="window.ExportImport.exportBackupJson()" title="שמור קובץ גיבוי למחשב">
+                        💾 גיבוי JSON
+                    </button>
+                    <label class="btn" style="cursor: pointer; background: rgba(255,255,255,0.05);" title="טען גיבוי קודם">
+                        📂 שחזר גיבוי
+                        <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="window.ExportImport.importBackupJson(this)">
+                    </label>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Area -->
+        <main class="main-content">
+            
+            <!-- 1. IDEAS BOARD VIEW -->
+            <section id="ideasView" class="tab-content active">
+                <div class="board-header">
+                    <div class="filters-bar">
+                        <input type="text" id="ideaSearchInput" class="search-input" placeholder="🔍 חפש רעיון, דמות או מושג...">
+                        <button class="tag-filter active" data-tag="all">הכל</button>
+                        <button class="tag-filter" data-tag="plot">📖 עלילה</button>
+                        <button class="tag-filter" data-tag="char">👤 דמויות</button>
+                        <button class="tag-filter" data-tag="magic">✨ קסם ופיות</button>
+                        <button class="tag-filter" data-tag="world">🌍 בניית עולם</button>
+                        <button class="tag-filter" data-tag="conflict">🔥 קונפליקט</button>
+                    </div>
+                    <button id="addIdeaBtn" class="btn btn-primary">
+                        + רעיון חדש
+                    </button>
+                </div>
+
+                <div id="ideasGrid" class="ideas-grid">
+                    <!-- Cards injected by js/ideas-board.js -->
+                </div>
+            </section>
+
+            <!-- 2. OUTLINER / TIMELINE VIEW -->
+            <section id="outlinerView" class="tab-content">
+                <div class="board-header">
+                    <div>
+                        <h2 style="font-size: 1.5rem; margin-bottom: 0.3rem;">ציר הזמן וזרימת הפרקים</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem;">גרור ושנה את סדר הפרקים בחופשיות. שייך אליהם רעיונות מלוח הרעיונות כדי ליצור שלד יציב לכתיבה.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.Outliner.addNewChapter()">
+                        + הוסף פרק חדש
+                    </button>
+                </div>
+
+                <div id="timelineContainer" class="timeline-container">
+                    <!-- Timeline chapters injected by js/outliner.js -->
+                </div>
+            </section>
+
+            <!-- 3. CHARACTER BIBLE VIEW -->
+            <section id="charactersView" class="tab-content">
+                <div class="board-header">
+                    <div>
+                        <h2 style="font-size: 1.5rem; margin-bottom: 0.3rem;">תנ"ך דמויות ומושגים</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem;">מאגר המידע המלא על דמויות הסיפור: לוחמי הסרטן, דרקוני האש והקרח, והפיות.</p>
+                    </div>
+                    <button id="addCharacterBtn" class="btn btn-primary">
+                        + הוסף דמות חדשה
+                    </button>
+                </div>
+
+                <div id="charactersGrid" class="characters-grid">
+                    <!-- Characters injected by js/characters.js -->
+                </div>
+            </section>
+
+            <!-- 4. DISTRACTION-FREE EDITOR VIEW -->
+            <section id="editorView" class="tab-content">
+                <div class="editor-layout">
+                    
+                    <!-- Chapter Sidebar -->
+                    <aside class="editor-sidebar">
+                        <div style="font-weight: 700; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; display:flex; justify-content:space-between; align-items:center;">
+                            <span>📚 פרקי הספר</span>
+                            <button class="icon-btn" onclick="window.Outliner.addNewChapter()" title="פרק חדש" style="color:var(--accent-ice);">+ הוסף</button>
+                        </div>
+                        <div id="chapterSidebarList" style="display:flex; flex-direction:column; gap:0.6rem;">
+                            <!-- Sidebar list injected by js/editor.js -->
+                        </div>
+                    </aside>
+
+                    <!-- Main Textarea Editor -->
+                    <div class="editor-main">
+                        <div class="editor-toolbar">
+                            <div id="currentChapterTitleDisplay" style="font-weight: 700; font-size: 1.1rem; color: var(--accent-ice);">
+                                📖 בחר פרק לעריכה
+                            </div>
+                            <div class="editor-stats">
+                                <div>📝 <span id="statWordCount">0</span> מילים</div>
+                                <div>🔤 <span id="statCharCount">0</span> תווים</div>
+                                <div>⏱️ זמן קריאה: <span id="statReadTime">0 דק'</span></div>
+                                <button class="btn" onclick="window.ChapterEditor.toggleDistractionFree()" style="padding:0.3rem 0.7rem; font-size:0.8rem; margin-right: 0.5rem;">
+                                    🧘‍♂️ מצב פוקוס
+                                </button>
+                            </div>
+                        </div>
+
+                        <textarea id="chapterTextarea" class="textarea-editor" placeholder="התחל לכתוב את הסיפור של דינה וג'ק כאן... כל מה שתכתוב נשמר אוטומטית."></textarea>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal: New Idea -->
+    <div id="newIdeaModal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.3rem;">💡 רעיון חדש לעלילה</h3>
+                <button class="icon-btn close-modal" style="font-size: 1.5rem;">&times;</button>
+            </div>
+            <form id="newIdeaForm">
+                <div class="form-group">
+                    <label for="ideaTitleInput">כותרת הרעיון:</label>
+                    <input type="text" id="ideaTitleInput" name="title" class="form-control" placeholder="למשל: סוד האבן השחורה של רון" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="ideaTagSelect">קטגוריה / נושא:</label>
+                        <select id="ideaTagSelect" name="tag" class="form-control" style="background: #1e293b;">
+                            <option value="plot">📖 עלילה</option>
+                            <option value="char">👤 דמויות</option>
+                            <option value="magic">✨ קסם ופיות</option>
+                            <option value="world">🌍 בניית עולם</option>
+                            <option value="conflict">🔥 קונפליקט</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ideaChapterSelect">שייך לפרק (אופציונלי):</label>
+                        <select id="ideaChapterSelect" name="chapterId" class="form-control" style="background: #1e293b;">
+                            <option value="none">-- ללא שיוך לפרק כרגע --</option>
+                            <option value="chap-1">פרק 1: ההתעוררות בקרח</option>
+                            <option value="chap-2">פרק 2: שרידי הכפר והשד בספר</option>
+                            <option value="chap-3">פרק 3: הבריחה מרון וחייליו</option>
+                            <option value="chap-4">פרק 4: עולם הפיות והזיכרון הנעול</option>
+                            <option value="chap-5">פרק 5: שבירת המסכה והקרב על הלב</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="ideaContentInput">פירוט הרעיון:</label>
+                    <textarea id="ideaContentInput" name="content" class="form-control" rows="5" placeholder="כתוב כאן את פרטי הרעיון, סצנה שחשבת עליה, או רמז להמשך..." required></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:0.8rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn close-modal">ביטול</button>
+                    <button type="submit" class="btn btn-primary">✨ הוסף רעיון ללוח</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: New Character -->
+    <div id="newCharacterModal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.3rem;">👥 הוספת דמות חדשה</h3>
+                <button class="icon-btn close-modal" style="font-size: 1.5rem;">&times;</button>
+            </div>
+            <form id="newCharacterForm">
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>שם הדמות:</label>
+                        <input type="text" name="name" class="form-control" placeholder="למשל: סֶיל" required>
+                    </div>
+                    <div class="form-group">
+                        <label>גזע / מוצא:</label>
+                        <input type="text" name="race" class="form-control" placeholder="דרקון אש">
+                    </div>
+                    <div class="form-group">
+                        <label>אייקון / אימוג'י:</label>
+                        <input type="text" name="avatar" class="form-control" placeholder="🐉">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>מראה כללי ותכונות:</label>
+                    <input type="text" name="appearance" class="form-control" placeholder="שיער חום, גמיש, לוחם שמאלי...">
+                </div>
+                <div class="form-group">
+                    <label>מטרה מרכזית:</label>
+                    <input type="text" name="goal" class="form-control" placeholder="מה הדמות מנסה להשיג?">
+                </div>
+                <div class="form-group">
+                    <label>סיפור רקע ועבר:</label>
+                    <textarea name="backstory" class="form-control" rows="4" placeholder="מאיפה הדמות הגיעה ומה הקשר שלה לדינה או לרון?"></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:0.8rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn close-modal">ביטול</button>
+                    <button type="submit" class="btn btn-primary">✨ הוסף דמות לתנ"ך</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- JS Scripts -->
+    <script src="js/seed-data.js"></script>
+    <script src="js/ideas-board.js"></script>
+    <script src="js/outliner.js"></script>
+    <script src="js/characters.js"></script>
+    <script src="js/editor.js"></script>
+    <script src="js/export-import.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
