@@ -1,91 +1,65 @@
-// export-import.js - ייצוא ויבוא של הספר ורעיונות העלילה
+// export-import.js - ייצוא נקי ללא עיצוב (טקסט ו-Word) ויבוא גיבוי
 
 class ExportImportManager {
     constructor() {}
 
-    exportToMarkdown() {
+    exportToPlainText() {
         if (!window.App) return;
         const state = window.App.state;
 
-        let md = `# רשימות דינה\n\n`;
-        md += `> נוצר ועודכן בסטודיו לכתיבה בתאריך ${new Date().toLocaleDateString('he-IL')}\n\n`;
-        md += `---\n\n`;
+        let txt = `רשימות דינה\n`;
+        txt += `=====================================\n\n`;
 
         state.chapters.forEach(chap => {
-            md += `## פרק ${chap.number}: ${chap.title}\n\n`;
-            if (chap.summary) {
-                md += `*תקציר:* ${chap.summary}\n\n`;
-            }
-            if (chap.content && chap.content.trim()) {
-                md += `${chap.content.trim()}\n\n`;
+            txt += `פרק ${chap.number}: ${chap.title}\n`;
+            txt += `-------------------------------------\n\n`;
+            
+            // ניקוי תגיות HTML אם יש מירקורים או עיצובים
+            const plainContent = this.stripHtml(chap.content || '');
+            if (plainContent.trim()) {
+                txt += `${plainContent.trim()}\n\n\n`;
             } else {
-                md += `*(טרם נכתב טקסט לפרק זה)*\n\n`;
+                txt += `[טרם נכתב טקסט לפרק זה]\n\n\n`;
             }
-            md += `---\n\n`;
         });
 
-        // נספח רעיונות
-        md += `# נספח: רשימת רעיונות ונקודות עלילה\n\n`;
-        state.ideas.forEach(idea => {
-            const chapStr = idea.chapterId ? ` [משויך לפרק ${state.chapters.find(c => c.id === idea.chapterId)?.number || ''}]` : '';
-            md += `### 💡 ${idea.title} (${idea.tagLabel})${chapStr}\n\n`;
-            md += `${idea.content}\n\n`;
-        });
-
-        this.downloadFile(md, `dina-chronicles-book-${this.getDateStr()}.md`, 'text/markdown;charset=utf-8');
-        window.App.showToast('הספר יוצא בהצלחה כקובץ Markdown!', '📥');
+        this.downloadFile(txt, `dina-chronicles-text-${this.getDateStr()}.txt`, 'text/plain;charset=utf-8');
+        window.App.showToast('הספר יוצא בהצלחה כקובץ טקסט (.txt) נקי!', '📥');
     }
 
     exportToWordDocx() {
         if (!window.App) return;
         const state = window.App.state;
 
+        // ייצוא וורד נקי לחלוטין - ללא צבעים, ללא רקעים, רק מלל שחור על לבן
         let html = `
             <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
             <head>
                 <meta charset='utf-8'>
                 <title>רשימות דינה</title>
                 <style>
-                    body { font-family: 'Arial', 'David', sans-serif; direction: rtl; text-align: right; line-height: 1.8; font-size: 14pt; color: #000000; }
-                    h1 { font-size: 24pt; color: #0284c7; text-align: center; margin-bottom: 20pt; }
-                    h2 { font-size: 18pt; color: #1e293b; border-bottom: 2px solid #0284c7; padding-bottom: 5pt; margin-top: 30pt; }
-                    h3 { font-size: 14pt; color: #475569; margin-top: 15pt; }
-                    p { margin-bottom: 15pt; text-indent: 20pt; }
-                    .summary { background: #f1f5f9; padding: 10pt; border-right: 4px solid #0284c7; font-style: italic; margin-bottom: 15pt; }
+                    body { font-family: 'Arial', 'David', sans-serif; direction: rtl; text-align: right; line-height: 1.6; font-size: 12pt; color: #000000; background: #ffffff; }
+                    p { margin-bottom: 12pt; margin-top: 0; }
+                    .chapter-title { font-size: 16pt; font-weight: bold; margin-top: 24pt; margin-bottom: 12pt; }
                     .page-break { page-break-before: always; }
                 </style>
             </head>
             <body>
-                <h1>רשימות דינה</h1>
-                <p style="text-align: center; font-style: italic;">טיוטה מרוכזת מתוך הסטודיו לכתיבה - ${new Date().toLocaleDateString('he-IL')}</p>
-                <div class="page-break"></div>
         `;
 
         state.chapters.forEach((chap, idx) => {
             if (idx > 0) html += `<div class="page-break"></div>`;
-            html += `<h2>פרק ${chap.number}: ${chap.title}</h2>`;
-            if (chap.summary) {
-                html += `<div class="summary"><strong>תקציר:</strong> ${chap.summary}</div>`;
-            }
-            if (chap.content && chap.content.trim()) {
-                const paragraphs = chap.content.trim().split(/\n+/);
+            html += `<div class="chapter-title">פרק ${chap.number}: ${chap.title}</div>`;
+            
+            const plainContent = this.stripHtml(chap.content || '');
+            if (plainContent.trim()) {
+                const paragraphs = plainContent.trim().split(/\n+/);
                 paragraphs.forEach(p => {
                     if (p.trim()) html += `<p>${p.trim()}</p>`;
                 });
             } else {
-                html += `<p style="color: #94a3b8; font-style: italic;">[טרם נכתב טקסט לפרק זה]</p>`;
+                html += `<p>[טרם נכתב טקסט לפרק זה]</p>`;
             }
-        });
-
-        html += `
-                <div class="page-break"></div>
-                <h2>נספח: תנ"ך דמויות ורעיונות</h2>
-        `;
-
-        state.characters.forEach(char => {
-            html += `<h3>👤 ${char.name} (${char.race})</h3>`;
-            if (char.goal) html += `<p><strong>מטרה:</strong> ${char.goal}</p>`;
-            if (char.backstory) html += `<p><strong>רקע:</strong> ${char.backstory}</p>`;
         });
 
         html += `</body></html>`;
@@ -94,13 +68,20 @@ class ExportImportManager {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `dina-chronicles-book-${this.getDateStr()}.doc`;
+        link.download = `dina-chronicles-${this.getDateStr()}.doc`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
-        window.App.showToast('הספר יוצא בהצלחה כקובץ Word!', '📄');
+        window.App.showToast('הספר יוצא בהצלחה כקובץ Word נקי!', '📄');
+    }
+
+    stripHtml(html) {
+        if (!html) return '';
+        const tmp = document.createElement('DIV');
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || '';
     }
 
     exportBackupJson() {
