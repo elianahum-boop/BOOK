@@ -92,10 +92,18 @@ class AppManager {
         });
 
         document.getElementById('addIdeaBtn')?.addEventListener('click', () => {
+            const form = document.getElementById('newIdeaForm');
+            if (form) { form.reset(); if(form.editId) form.editId.value = ''; }
+            const titleEl = document.querySelector('#newIdeaModal h3');
+            if (titleEl) titleEl.innerText = '💡 רעיון חדש לעלילה';
             this.openModal('newIdeaModal');
         });
 
         document.getElementById('addCharacterBtn')?.addEventListener('click', () => {
+            const form = document.getElementById('newCharacterForm');
+            if (form) { form.reset(); if(form.editId) form.editId.value = ''; }
+            const titleEl = document.querySelector('#newCharacterModal h3');
+            if (titleEl) titleEl.innerText = '👥 הוספת דמות חדשה';
             this.openModal('newCharacterModal');
         });
 
@@ -165,11 +173,54 @@ class AppManager {
         document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
     }
 
+    openEditIdeaModal(ideaId) {
+        const idea = this.state.ideas.find(i => i.id === ideaId);
+        if (!idea) return;
+        
+        const form = document.getElementById('newIdeaForm');
+        if (!form) return;
+        
+        form.reset();
+        if (form.editId) form.editId.value = idea.id;
+        if (form.title) form.title.value = idea.title;
+        if (form.tag) form.tag.value = idea.tag;
+        if (form.chapterId) form.chapterId.value = idea.chapterId || 'none';
+        if (form.content) form.content.value = idea.content;
+
+        const titleEl = document.querySelector('#newIdeaModal h3');
+        if (titleEl) titleEl.innerText = '✏️ עריכת רעיון עלילה';
+
+        this.openModal('newIdeaModal');
+    }
+
+    openEditCharacterModal(charId) {
+        const char = this.state.characters.find(c => c.id === charId);
+        if (!char) return;
+
+        const form = document.getElementById('newCharacterForm');
+        if (!form) return;
+
+        form.reset();
+        if (form.editId) form.editId.value = char.id;
+        if (form.name) form.name.value = char.name;
+        if (form.race) form.race.value = char.race || '';
+        if (form.avatar) form.avatar.value = char.avatar || '';
+        if (form.appearance) form.appearance.value = char.appearance || '';
+        if (form.goal) form.goal.value = char.goal || '';
+        if (form.backstory) form.backstory.value = char.backstory || '';
+
+        const titleEl = document.querySelector('#newCharacterModal h3');
+        if (titleEl) titleEl.innerText = '✏️ עריכת דמות';
+
+        this.openModal('newCharacterModal');
+    }
+
     handleCreateIdea(form) {
         const title = form.title.value.trim();
         const tag = form.tag.value;
         const content = form.content.value.trim();
         const chapterId = form.chapterId ? form.chapterId.value : null;
+        const editId = form.editId ? form.editId.value : null;
 
         if (!title || !content) return;
 
@@ -181,20 +232,36 @@ class AppManager {
             conflict: "קונפליקט"
         };
 
-        const newIdea = {
-            id: 'idea-' + Date.now(),
-            title,
-            tag,
-            tagLabel: tagLabels[tag] || "כללי",
-            content,
-            chapterId: chapterId && chapterId !== "none" ? chapterId : null
-        };
+        if (editId) {
+            const existing = this.state.ideas.find(i => i.id === editId);
+            if (existing) {
+                existing.title = title;
+                existing.tag = tag;
+                existing.tagLabel = tagLabels[tag] || "כללי";
+                existing.content = content;
+                existing.chapterId = chapterId && chapterId !== "none" ? chapterId : null;
+                this.showToast('הרעיון עודכן בהצלחה!', '✏️');
+            }
+        } else {
+            const newIdea = {
+                id: 'idea-' + Date.now(),
+                title,
+                tag,
+                tagLabel: tagLabels[tag] || "כללי",
+                content,
+                chapterId: chapterId && chapterId !== "none" ? chapterId : null
+            };
+            this.state.ideas.unshift(newIdea);
+            this.showToast('הרעיון החדש נוסף בהצלחה ללוח!', '💡');
+        }
 
-        this.state.ideas.unshift(newIdea);
         this.saveState();
         form.reset();
+        if (form.editId) form.editId.value = '';
+        const titleEl = document.querySelector('#newIdeaModal h3');
+        if (titleEl) titleEl.innerText = '💡 רעיון חדש לעלילה';
+
         this.closeAllModals();
-        this.showToast('הרעיון החדש נוסף בהצלחה ללוח!', '💡');
         if (window.IdeasBoard) window.IdeasBoard.render();
         if (window.Outliner) window.Outliner.render();
     }
@@ -206,25 +273,43 @@ class AppManager {
         const goal = form.goal.value.trim();
         const backstory = form.backstory.value.trim();
         const avatar = form.avatar.value.trim() || "👤";
+        const editId = form.editId ? form.editId.value : null;
 
         if (!name) return;
 
-        const newChar = {
-            id: 'char-' + Date.now(),
-            name,
-            race: race || "לא ידוע",
-            bannerClass: "banner-default",
-            avatar,
-            appearance,
-            goal,
-            backstory
-        };
+        if (editId) {
+            const existing = this.state.characters.find(c => c.id === editId);
+            if (existing) {
+                existing.name = name;
+                existing.race = race || "לא ידוע";
+                existing.avatar = avatar;
+                existing.appearance = appearance;
+                existing.goal = goal;
+                existing.backstory = backstory;
+                this.showToast('הדמות עודכנה בהצלחה!', '✏️');
+            }
+        } else {
+            const newChar = {
+                id: 'char-' + Date.now(),
+                name,
+                race: race || "לא ידוע",
+                bannerClass: "banner-default",
+                avatar,
+                appearance,
+                goal,
+                backstory
+            };
+            this.state.characters.push(newChar);
+            this.showToast('הדמות החדשה נוספה לתנ"ך הדמויות!', '👥');
+        }
 
-        this.state.characters.push(newChar);
         this.saveState();
         form.reset();
+        if (form.editId) form.editId.value = '';
+        const titleEl = document.querySelector('#newCharacterModal h3');
+        if (titleEl) titleEl.innerText = '👥 הוספת דמות חדשה';
+
         this.closeAllModals();
-        this.showToast('הדמות החדשה נוספה לתנ"ך הדמויות!', '👥');
         if (window.CharacterBible) window.CharacterBible.render();
     }
 }

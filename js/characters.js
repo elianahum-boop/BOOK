@@ -23,7 +23,10 @@ class CharacterBibleManager {
                                 <h3 class="char-name">${char.name}</h3>
                                 <span class="char-race">${char.race || 'לא ידוע'}</span>
                             </div>
-                            <button class="icon-btn" onclick="window.CharacterBible.deleteCharacter('${char.id}')" title="מחק דמות" style="color: #f43f5e; font-size:0.8rem;">🗑️</button>
+                            <div style="display:flex; gap:0.3rem;">
+                                <button class="icon-btn" onclick="window.App.openEditCharacterModal('${char.id}')" title="ערוך דמות" style="color: #38bdf8; font-size:0.8rem;">✏️</button>
+                                <button class="icon-btn" onclick="window.CharacterBible.deleteCharacter('${char.id}')" title="מחק דמות" style="color: #f43f5e; font-size:0.8rem;">🗑️</button>
+                            </div>
                         </div>
 
                         ${char.appearance ? `

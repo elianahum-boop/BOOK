@@ -60,6 +60,7 @@ class IdeasBoardManager {
                     <div class="idea-footer">
                         <div>${chapBadge}</div>
                         <div class="idea-actions">
+                            <button class="icon-btn" onclick="window.App.openEditIdeaModal('${idea.id}')" title="ערוך רעיון" style="color: #38bdf8;">✏️</button>
                             <button class="icon-btn" onclick="window.IdeasBoard.linkToChapter('${idea.id}')" title="שייך לפרק">🔗</button>
                             <button class="icon-btn" onclick="window.IdeasBoard.deleteIdea('${idea.id}')" title="מחק רעיון" style="color: #f43f5e;">🗑️</button>
                         </div>
