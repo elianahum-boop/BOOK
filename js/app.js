@@ -14,11 +14,50 @@ class AppManager {
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                // וודא שאין מידע חסר אם שדרגנו גרסה
+                let wiki = parsed.wiki || SEED_DATA.wiki;
+                wiki = wiki.filter(w => !w.title.includes('רוקחי הקרח'));
+                wiki.forEach(w => {
+                    if (w.title.includes('שיקה')) {
+                        w.title = "הסיכה של שרן (אמו של ג'ק)";
+                        w.description = "סיכת ירושה קסומה שהייתה שייכת לאמו של ג'ק, שרן נסיכת הקרח. בעבר ג'ק גנב אותה מהפיות (או לקח אותה בחזרה מהן), אך מבחינת הפיות הוא גנב מהן חפץ ולכן הן רואות אותו בעין רעה.";
+                    }
+                });
+                let characters = parsed.characters || SEED_DATA.characters;
+                characters.forEach(c => {
+                    if (c.backstory && c.backstory.includes('שיקה')) {
+                        c.backstory = c.backstory.replace(/שיקה/g, 'סיכה');
+                    }
+                    if (c.hated && c.hated.includes('שיקה')) {
+                        c.hated = c.hated.replace(/שיקה/g, 'סיכה');
+                    }
+                });
+                let ideas = parsed.ideas || SEED_DATA.ideas;
+                ideas.forEach(i => {
+                    if (i.title && i.title.includes('שיקה')) {
+                        i.title = i.title.replace(/שיקה/g, 'סיכה');
+                    }
+                    if (i.content && i.content.includes('שיקה')) {
+                        i.content = i.content.replace(/שיקה/g, 'סיכה');
+                    }
+                });
+                let chapters = parsed.chapters || SEED_DATA.chapters;
+                chapters.forEach(ch => {
+                    if (ch.summary && ch.summary.includes('שיקה')) {
+                        ch.summary = ch.summary.replace(/שיקה/g, 'סיכה');
+                    }
+                    if (ch.goals) {
+                        ch.goals.forEach(g => {
+                            if (g.text && g.text.includes('שיקה')) {
+                                g.text = g.text.replace(/שיקה/g, 'סיכה');
+                            }
+                        });
+                    }
+                });
                 return {
-                    ideas: parsed.ideas || SEED_DATA.ideas,
-                    chapters: parsed.chapters || SEED_DATA.chapters,
-                    characters: parsed.characters || SEED_DATA.characters,
+                    ideas: ideas,
+                    chapters: chapters,
+                    characters: characters,
+                    wiki: wiki,
                     activeTab: parsed.activeTab || 'ideas',
                     activeChapterId: parsed.activeChapterId || 'chap-1',
                     filterTag: 'all',
@@ -44,6 +83,7 @@ class AppManager {
                 ideas: this.state.ideas,
                 chapters: this.state.chapters,
                 characters: this.state.characters,
+                wiki: this.state.wiki,
                 activeTab: this.state.activeTab,
                 activeChapterId: this.state.activeChapterId
             };
