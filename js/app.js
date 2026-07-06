@@ -504,3 +504,12 @@ class AppManager {
 window.addEventListener('DOMContentLoaded', () => {
     window.App = new AppManager();
 });
+
+// Close dropdown menus when clicking outside
+window.addEventListener('click', function(e) {
+    if (!e.target.closest('.dropdown-container')) {
+        document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+            menu.classList.remove('show');
+        });
+    }
+});

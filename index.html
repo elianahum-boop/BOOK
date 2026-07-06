@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>רשימות דינה - סטודיו לכתיבה ובניית עלילה</title>
     <!-- Styles -->
-    <link rel="stylesheet" href="styles/index.css?v=3.0">
+    <link rel="stylesheet" href="styles/index.css?v=4.0">
     <!-- SortableJS for Drag & Drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 </head>
@@ -30,25 +30,29 @@
             </nav>
 
             <div class="header-actions">
-                <div id="saveIndicator" class="save-status">✨ מוכן לעבודה</div>
-                
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <button id="openSearchReplaceBtn" class="btn" style="background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid rgba(56,189,248,0.4);" title="חיפוש והחלפת מילים בכל פרקי הספר">
-                        🔍 חיפוש והחלפה
+                <div class="dropdown-container" style="position: relative;">
+                    <button class="btn btn-primary" onclick="this.nextElementSibling.classList.toggle('show')" style="padding: 0.35rem 0.8rem; font-size: 0.88rem; display: flex; align-items: center; gap: 0.4rem;">
+                        ⋮ כלים וייצוא ▼
                     </button>
-                    <button class="btn" onclick="window.ExportImport.exportToWordDocx()" title="הורד לוורד נקי - מלל בלבד">
-                        📄 וורד (מלל בלבד)
-                    </button>
-                    <button class="btn" onclick="window.ExportImport.exportToPlainText()" title="הורד קובץ טקסט פשוט (.txt)">
-                        📜 קובץ טקסט (.txt)
-                    </button>
-                    <button class="btn btn-gold" onclick="window.ExportImport.exportBackupJson()" title="שמור קובץ גיבוי למחשב">
-                        💾 גיבוי JSON
-                    </button>
-                    <label class="btn" style="cursor: pointer; background: rgba(255,255,255,0.05);" title="טען גיבוי קודם">
-                        📂 שחזר גיבוי
-                        <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="window.ExportImport.importBackupJson(this)">
-                    </label>
+                    <div class="dropdown-menu">
+                        <button id="openSearchReplaceBtn" class="dropdown-item">
+                            🔍 חיפוש והחלפה גלובלי
+                        </button>
+                        <button class="dropdown-item" onclick="window.ExportImport.exportToWordDocx()">
+                            📄 ייצוא לוורד (.docx מלל בלבד)
+                        </button>
+                        <button class="dropdown-item" onclick="window.ExportImport.exportToPlainText()">
+                            📜 ייצוא קובץ טקסט (.txt)
+                        </button>
+                        <hr style="border-color: rgba(255,255,255,0.1); margin: 0.3rem 0;">
+                        <button class="dropdown-item" onclick="window.ExportImport.exportBackupJson()">
+                            💾 שמור גיבוי מערכת (JSON)
+                        </button>
+                        <label class="dropdown-item" style="cursor: pointer; margin:0;">
+                            📂 שחזר גיבוי מקובץ
+                            <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="window.ExportImport.importBackupJson(this)">
+                        </label>
+                    </div>
                 </div>
             </div>
         </header>
@@ -156,37 +160,43 @@
 
                     <!-- Main Editor -->
                     <div class="editor-main">
-                        <div class="editor-toolbar">
-                            <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
-                                <button id="mobileSidebarBtn" class="btn" onclick="window.ChapterEditor.toggleMobileSidebar()" style="display:none; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:0.25rem 0.6rem; font-size:0.8rem;">
-                                    📚 תפריט פרקים וכלים ▼
+                        <div class="editor-toolbar" style="padding: 0.35rem 1rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                            <div style="display:flex; align-items:center; gap:0.6rem;">
+                                <button id="mobileSidebarBtn" class="btn" onclick="window.ChapterEditor.toggleMobileSidebar()" style="display:none; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:0.2rem 0.5rem; font-size:0.8rem;">
+                                    📚 תפריט ▼
                                 </button>
-                                <div id="currentChapterTitleDisplay" style="font-weight: 700; font-size: 1.05rem; color: var(--accent-ice);">
-                                    📖 בחר פרק לעריכה
+                                <div id="currentChapterTitleDisplay" style="font-weight: 700; font-size: 0.95rem; color: var(--accent-ice);">
+                                    📖 בחר פרק
                                 </div>
                             </div>
                             
-                            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                                <!-- Highlight Tools -->
-                                <div class="highlight-tools" style="display:flex; gap:0.3rem; align-items:center; background: rgba(0,0,0,0.3); padding: 0.2rem 0.6rem; border-radius: 8px; flex-wrap:wrap;">
-                                    <span style="font-size:0.75rem; color:var(--text-secondary);">מרקר:</span>
-                                    <button class="btn-highlight" style="background:#fef08a; color:#000;" onclick="window.ChapterEditor.highlightSelection('#fef08a')" title="סמן בצהוב">🖍️ צהוב</button>
-                                    <button class="btn-highlight" style="background:#bae6fd; color:#000;" onclick="window.ChapterEditor.highlightSelection('#bae6fd')" title="סמן בתכלת">💎 תכלת</button>
-                                    <button class="btn-highlight" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="window.ChapterEditor.highlightSelection('transparent')" title="נקה סימון">🧹 נקה</button>
-                                </div>
-
-                                <button class="btn" style="background:linear-gradient(135deg, #a855f7, #6366f1); color:#fff; padding:0.25rem 0.6rem; font-size:0.78rem; display:flex; align-items:center; gap:0.3rem; border:1px solid rgba(168,85,247,0.4);" onclick="window.ChapterEditor.addSelectionToWiki()" title="סמנו מילה בטקסט ולחצו כדי להוסיף למילון">
+                            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap: wrap; justify-content: flex-end;">
+                                <button class="btn-highlight" style="background:#fef08a; color:#000; padding: 0.2rem 0.5rem; font-size: 0.78rem; border-radius: 6px; border:none; cursor:pointer;" onclick="window.ChapterEditor.highlightSelection('#fef08a')" title="סמן בצהוב">🖍️ צהוב</button>
+                                <button class="btn-highlight" style="background:#bae6fd; color:#000; padding: 0.2rem 0.5rem; font-size: 0.78rem; border-radius: 6px; border:none; cursor:pointer;" onclick="window.ChapterEditor.highlightSelection('#bae6fd')" title="סמן בתכלת">💎 תכלת</button>
+                                <button class="btn" style="background:linear-gradient(135deg, #a855f7, #6366f1); color:#fff; padding:0.2rem 0.6rem; font-size:0.78rem; display:flex; align-items:center; gap:0.3rem; border:1px solid rgba(168,85,247,0.4); border-radius:6px; cursor:pointer;" onclick="window.ChapterEditor.addSelectionToWiki()" title="הוסף מילה מסומנת למילון">
                                     🌍+ למילון
                                 </button>
-                            </div>
+                                <div style="font-size:0.82rem; color:#cbd5e1; font-weight:600; background:rgba(0,0,0,0.3); padding:0.2rem 0.6rem; border-radius:6px;">
+                                    📝 <span id="statWordCount">0</span> מילים
+                                </div>
 
-                            <div class="editor-stats">
-                                <div>📝 <span id="statWordCount">0</span> מילים</div>
-                                <div>🔤 <span id="statCharCount">0</span> תווים</div>
-                                <div>⏱️ <span id="statReadTime">0 דק'</span></div>
-                                <button class="btn" onclick="window.ChapterEditor.toggleDistractionFree()" style="padding:0.25rem 0.6rem; font-size:0.78rem;">
-                                    🧘‍♂️ פוקוס
-                                </button>
+                                <div class="dropdown-container" style="position: relative;">
+                                    <button class="btn" onclick="this.nextElementSibling.classList.toggle('show')" style="background: rgba(255,255,255,0.08); color: #fff; padding: 0.2rem 0.6rem; font-size: 0.82rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer;">
+                                        ⋮ אופציות ▼
+                                    </button>
+                                    <div class="dropdown-menu" style="right: 0; left: auto;">
+                                        <div style="padding: 0.5rem 0.8rem; font-size: 0.85rem; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                                            <div>🔤 תווים: <strong style="color:#fff;" id="statCharCount">0</strong></div>
+                                            <div>⏱️ זמן קריאה: <strong style="color:#fff;" id="statReadTime">0 דק'</strong></div>
+                                        </div>
+                                        <button class="dropdown-item" onclick="window.ChapterEditor.highlightSelection('transparent')">
+                                            🧹 נקה מירקור מהקטע המסומן
+                                        </button>
+                                        <button class="dropdown-item" onclick="window.ChapterEditor.toggleDistractionFree()">
+                                            🧘‍♂️ מצב פוקוס (מסך מלא ללא סרגלים)
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -364,13 +374,13 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <!-- JS Scripts -->
-    <script src="js/seed-data.js?v=3.0"></script>
-    <script src="js/wiki.js?v=3.0"></script>
-    <script src="js/ideas-board.js?v=3.0"></script>
-    <script src="js/outliner.js?v=3.0"></script>
-    <script src="js/characters.js?v=3.0"></script>
-    <script src="js/editor.js?v=3.0"></script>
-    <script src="js/export-import.js?v=3.0"></script>
-    <script src="js/app.js?v=3.0"></script>
+    <script src="js/seed-data.js?v=4.0"></script>
+    <script src="js/wiki.js?v=4.0"></script>
+    <script src="js/ideas-board.js?v=4.0"></script>
+    <script src="js/outliner.js?v=4.0"></script>
+    <script src="js/characters.js?v=4.0"></script>
+    <script src="js/editor.js?v=4.0"></script>
+    <script src="js/export-import.js?v=4.0"></script>
+    <script src="js/app.js?v=4.0"></script>
 </body>
 </html>
