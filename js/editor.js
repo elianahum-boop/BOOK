@@ -52,6 +52,22 @@ class ChapterEditorManager {
                 `;
             });
 
+            // מילון עולם ואנציקלופדיה
+            if (state.wiki && state.wiki.length > 0) {
+                bankHtml += `<div class="bank-section-title" style="margin-top:1.2rem;">🌍 מילון מושגים ומקומות</div>`;
+                state.wiki.forEach(w => {
+                    bankHtml += `
+                        <div class="bank-item">
+                            <div>
+                                <div style="font-weight:600; color:#fff;">${w.title}</div>
+                                <div style="font-size:0.75rem; color:#c084fc;">${w.categoryLabel || ''}</div>
+                            </div>
+                            <button class="btn" style="padding:0.2rem 0.5rem; font-size:0.75rem; background:rgba(168,85,247,0.2); color:#c084fc;" onclick="window.ChapterEditor.insertText('${w.title}')" title="הכנס מושג לטקסט">➕ הוסף</button>
+                        </div>
+                    `;
+                });
+            }
+
             // רעיונות מלוח הרעיונות
             bankHtml += `<div class="bank-section-title" style="margin-top:1.2rem;">💡 רעיונות וסצנות</div>`;
             state.ideas.forEach(i => {
@@ -80,6 +96,7 @@ class ChapterEditorManager {
                 titleDisplayEl.innerHTML = `📖 פרק ${activeChap.number}: ${activeChap.title}`;
             }
             this.updateStats(activeChap.content || '');
+            this.renderChapterGoals(activeChap);
         }
 
         // שמירה אוטומטית בעת הקלדה או מירקור
@@ -204,6 +221,116 @@ class ChapterEditorManager {
             document.querySelector('.editor-layout').style.gridTemplateColumns = '320px 1fr';
             document.getElementById('chapterEditorArea').style.paddingTop = '3rem';
             window.App.showToast('יציאה ממצב פוקוס', '👁️');
+        }
+    }
+
+    renderChapterGoals(chapter) {
+        const container = document.getElementById('chapterGoalsContainer');
+        if (!container || !chapter) return;
+
+        if (!chapter.goals) chapter.goals = [];
+
+        let html = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.5rem; flex-wrap:wrap; gap:0.5rem;">
+                <div style="font-weight:700; color:#f8fafc; font-size:0.95rem; display:flex; align-items:center; gap:0.4rem;">
+                    🎯 יעדי ומשימות לפרק <span style="font-size:0.75rem; background:rgba(56,189,248,0.15); color:#38bdf8; padding:0.1rem 0.5rem; border-radius:12px; font-weight:normal;">ניתן לעריכה</span>
+                </div>
+                <div style="font-size:0.8rem; color: #38bdf8; font-weight:600; background:rgba(0,0,0,0.3); padding:0.2rem 0.6rem; border-radius:8px;">
+                    ${chapter.goals.filter(g => g.done).length} / ${chapter.goals.length} הושלמו
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.5rem; max-height: 160px; overflow-y:auto; padding-right:0.3rem;">
+        `;
+
+        if (chapter.goals.length === 0) {
+            html += `<div style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding:0.5rem;">אין יעדים לפרק זה כרגע. הקלידו יעד חדש למטה והוסיפו!</div>`;
+        } else {
+            chapter.goals.forEach(goal => {
+                html += `
+                    <div style="display:flex; align-items:center; gap:0.6rem; background: rgba(0,0,0,0.25); padding:0.4rem 0.6rem; border-radius:6px; border: 1px solid rgba(255,255,255,0.04);">
+                        <input type="checkbox" ${goal.done ? 'checked' : ''} onchange="window.ChapterEditor.toggleGoal('${chapter.id}', '${goal.id}')" style="cursor:pointer; width:16px; height:16px; accent-color:#38bdf8;">
+                        <input type="text" value="${goal.text.replace(/"/g, '&quot;')}" 
+                               onchange="window.ChapterEditor.editGoalText('${chapter.id}', '${goal.id}', this.value)"
+                               style="flex:1; background:transparent; border:none; color: ${goal.done ? '#64748b' : '#fff'}; text-decoration: ${goal.done ? 'line-through' : 'none'}; font-size:0.88rem; font-family:inherit; outline:none;" 
+                               title="לחץ כאן כדי לערוך את טקסט היעד">
+                        <button class="icon-btn" onclick="window.ChapterEditor.deleteGoal('${chapter.id}', '${goal.id}')" style="color:#f43f5e; font-size:0.9rem; padding:0.1rem;" title="מחק יעד זה">🗑️</button>
+                    </div>
+                `;
+            });
+        }
+
+        html += `
+            </div>
+            <div style="display:flex; gap:0.5rem; margin-top: 0.8rem;">
+                <input type="text" id="newGoalInput_${chapter.id}" class="form-control" placeholder="הקלידו יעד/משימה חדשה לפרק..." style="padding:0.4rem 0.8rem; font-size:0.85rem;">
+                <button class="btn btn-primary" onclick="window.ChapterEditor.addGoal('${chapter.id}')" style="padding:0.4rem 0.8rem; font-size:0.85rem; white-space:nowrap; background:linear-gradient(135deg,#0ea5e9,#2563eb);">
+                    + הוסף יעד
+                </button>
+            </div>
+        `;
+
+        container.innerHTML = html;
+
+        const inputEl = document.getElementById(`newGoalInput_${chapter.id}`);
+        if (inputEl) {
+            inputEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.addGoal(chapter.id);
+                }
+            });
+        }
+    }
+
+    toggleGoal(chapterId, goalId) {
+        const chapter = window.App.state.chapters.find(c => c.id === chapterId);
+        if (!chapter || !chapter.goals) return;
+        const goal = chapter.goals.find(g => g.id === goalId);
+        if (goal) {
+            goal.done = !goal.done;
+            window.App.saveState();
+            this.renderChapterGoals(chapter);
+            window.App.showToast(goal.done ? 'יעד הושלם! כל הכבוד 🎯' : 'יעד סומן כלא הושלם', '🎯');
+        }
+    }
+
+    addGoal(chapterId) {
+        const chapter = window.App.state.chapters.find(c => c.id === chapterId);
+        if (!chapter) return;
+        const inputEl = document.getElementById(`newGoalInput_${chapterId}`);
+        if (!inputEl) return;
+        const text = inputEl.value.trim();
+        if (!text) return;
+
+        if (!chapter.goals) chapter.goals = [];
+        chapter.goals.push({
+            id: 'goal-' + Date.now(),
+            text,
+            done: false
+        });
+
+        window.App.saveState();
+        this.renderChapterGoals(chapter);
+        window.App.showToast('יעד חדש נוסף לפרק!', '➕');
+    }
+
+    deleteGoal(chapterId, goalId) {
+        const chapter = window.App.state.chapters.find(c => c.id === chapterId);
+        if (!chapter || !chapter.goals) return;
+        chapter.goals = chapter.goals.filter(g => g.id !== goalId);
+        window.App.saveState();
+        this.renderChapterGoals(chapter);
+        window.App.showToast('היעד נמחק מהפרק', '🗑️');
+    }
+
+    editGoalText(chapterId, goalId, newText) {
+        const chapter = window.App.state.chapters.find(c => c.id === chapterId);
+        if (!chapter || !chapter.goals) return;
+        const goal = chapter.goals.find(g => g.id === goalId);
+        if (goal && newText.trim()) {
+            goal.text = newText.trim();
+            window.App.saveState();
+            window.App.showToast('טקסט היעד עודכן', '✏️');
         }
     }
 }

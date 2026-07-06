@@ -119,10 +119,37 @@ class AppManager {
             this.handleCreateCharacter(e.target);
         });
 
+        // New Wiki Btn
+        document.getElementById('addWikiBtn')?.addEventListener('click', () => {
+            const form = document.getElementById('newWikiForm');
+            if (form) { form.reset(); if(form.editId) form.editId.value = ''; }
+            const titleEl = document.querySelector('#newWikiModal h3');
+            if (titleEl) titleEl.innerText = '🌍 הוספת מושג חדש למילון';
+            this.openModal('newWikiModal');
+        });
+
+        // Save Wiki Form
+        document.getElementById('newWikiForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleCreateWiki(e.target);
+        });
+
+        // Search Replace Btn
+        document.getElementById('openSearchReplaceBtn')?.addEventListener('click', () => {
+            this.openSearchReplaceModal();
+        });
+
+        // Search Replace Form
+        document.getElementById('searchReplaceForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.executeSearchReplace(e.target);
+        });
+
         // Search Input
         document.getElementById('ideaSearchInput')?.addEventListener('input', (e) => {
             this.state.searchTerm = e.target.value.toLowerCase().trim();
             if (window.IdeasBoard) window.IdeasBoard.render();
+            if (window.WorldWiki && this.state.activeTab === 'wiki') window.WorldWiki.render();
         });
 
         // Tag Filters
@@ -158,6 +185,9 @@ class AppManager {
                 break;
             case 'characters':
                 if (window.CharacterBible) window.CharacterBible.render();
+                break;
+            case 'wiki':
+                if (window.WorldWiki) window.WorldWiki.render();
                 break;
             case 'editor':
                 if (window.ChapterEditor) window.ChapterEditor.render();
@@ -311,6 +341,122 @@ class AppManager {
 
         this.closeAllModals();
         if (window.CharacterBible) window.CharacterBible.render();
+    }
+
+    openEditWikiModal(id) {
+        const item = (this.state.wiki || []).find(w => w.id === id);
+        if (!item) return;
+
+        const form = document.getElementById('newWikiForm');
+        if (!form) return;
+
+        form.reset();
+        if (form.editId) form.editId.value = item.id;
+        if (form.title) form.title.value = item.title;
+        if (form.category) form.category.value = item.category || 'magic';
+        if (form.description) form.description.value = item.description || '';
+
+        const titleEl = document.querySelector('#newWikiModal h3');
+        if (titleEl) titleEl.innerText = '✏️ עריכת מושג במילון';
+
+        this.openModal('newWikiModal');
+    }
+
+    handleCreateWiki(form) {
+        const title = form.title.value.trim();
+        const category = form.category.value;
+        const description = form.description.value.trim();
+        const editId = form.editId ? form.editId.value : null;
+
+        if (!title || !description) return;
+
+        const catLabels = {
+            magic: "✨ קסם וחפצים",
+            place: "🗺️ מקומות",
+            lore: "📜 היסטוריה",
+            faction: "🛡️ עמים וגזעים"
+        };
+
+        if (!this.state.wiki) this.state.wiki = [];
+
+        if (editId) {
+            const existing = this.state.wiki.find(w => w.id === editId);
+            if (existing) {
+                existing.title = title;
+                existing.category = category;
+                existing.categoryLabel = catLabels[category] || "כללי";
+                existing.description = description;
+                this.showToast('המושג עודכן בהצלחה במילון!', '✏️');
+            }
+        } else {
+            const newItem = {
+                id: 'wiki-' + Date.now(),
+                title,
+                category,
+                categoryLabel: catLabels[category] || "כללי",
+                description
+            };
+            this.state.wiki.push(newItem);
+            this.showToast('המושג החדש נוסף למילון העולם!', '🌍');
+        }
+
+        this.saveState();
+        form.reset();
+        if (form.editId) form.editId.value = '';
+        const titleEl = document.querySelector('#newWikiModal h3');
+        if (titleEl) titleEl.innerText = '🌍 הוספת מושג חדש למילון';
+
+        this.closeAllModals();
+        if (window.WorldWiki) window.WorldWiki.render();
+        if (window.ChapterEditor) window.ChapterEditor.renderSidebarContent();
+    }
+
+    openSearchReplaceModal() {
+        const form = document.getElementById('searchReplaceForm');
+        if (form) {
+            form.reset();
+            const resultsDiv = document.getElementById('searchReplaceResults');
+            if (resultsDiv) resultsDiv.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem;">הזינו מילת חיפוש ולחצו על "חפש מופעים" כדי לראות איפה היא מופיעה בספר...</div>';
+        }
+        this.openModal('searchReplaceModal');
+    }
+
+    executeSearchReplace(form) {
+        const searchWord = form.searchWord.value.trim();
+        const replaceWord = form.replaceWord.value;
+        const mode = form.replaceMode.value; // 'all' or 'current'
+
+        if (!searchWord) return;
+
+        let totalCount = 0;
+        const activeChapterId = this.state.activeChapterId;
+
+        this.state.chapters.forEach(ch => {
+            if (mode === 'current' && ch.id !== activeChapterId) return;
+            if (!ch.content) return;
+
+            const regex = new RegExp(searchWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+            const matches = ch.content.match(regex);
+            if (matches) {
+                totalCount += matches.length;
+                ch.content = ch.content.replace(regex, replaceWord);
+            }
+        });
+
+        this.saveState();
+        if (window.ChapterEditor && this.state.activeTab === 'editor') {
+            window.ChapterEditor.loadChapter(this.state.activeChapterId);
+        }
+
+        const resultsDiv = document.getElementById('searchReplaceResults');
+        if (resultsDiv) {
+            resultsDiv.innerHTML = `
+                <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); padding: 1rem; border-radius: 8px; color: #4ade80; font-weight:700;">
+                    ✨ ההחלפה הושלמה בהצלחה! הוחלפו ${totalCount} מופעים בספר.
+                </div>
+            `;
+        }
+        this.showToast(`הוחלפו ${totalCount} מופעים של "${searchWord}"!`, '⚡');
     }
 }
 
