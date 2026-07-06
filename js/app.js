@@ -5,8 +5,9 @@ const STORAGE_KEY = 'dina_chronicles_studio_state';
 class AppManager {
     constructor() {
         this.state = this.loadState();
+        this.state.activeTab = 'editor';
         this.initEventListeners();
-        this.renderCurrentTab();
+        this.switchTab('editor');
     }
 
     loadState() {
@@ -58,7 +59,7 @@ class AppManager {
                     chapters: chapters,
                     characters: characters,
                     wiki: wiki,
-                    activeTab: parsed.activeTab || 'ideas',
+                    activeTab: 'editor',
                     activeChapterId: parsed.activeChapterId || 'chap-1',
                     filterTag: 'all',
                     searchTerm: ''
@@ -70,7 +71,7 @@ class AppManager {
         // ברירת מחדל: נתוני ההתחלה של רשימות דינה
         return {
             ...JSON.parse(JSON.stringify(SEED_DATA)),
-            activeTab: 'ideas',
+            activeTab: 'editor',
             activeChapterId: 'chap-1',
             filterTag: 'all',
             searchTerm: ''
