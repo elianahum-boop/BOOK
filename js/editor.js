@@ -16,7 +16,9 @@ class ChapterEditorManager {
 
         if (!sidebarContentEl || !editorEl) return;
 
-        // רינדור סרגל הצד (פרקים או בנק מילים)
+        const activeChap = state.chapters.find(c => c.id === state.activeChapterId) || state.chapters[0];
+
+        // רינדור סרגל הצד (פרקים, בנק מילים או יעדים)
         if (this.sidebarMode === 'chapters') {
             sidebarContentEl.innerHTML = state.chapters.map(chap => {
                 const isActive = chap.id === state.activeChapterId;
@@ -34,7 +36,7 @@ class ChapterEditorManager {
                     </div>
                 `;
             }).join('');
-        } else {
+        } else if (this.sidebarMode === 'wordbank') {
             // בנק מילים ורעיונות
             let bankHtml = `<div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.8rem;">לחץ "➕ הוסף" כדי לשתול שם, מושג או רעיון במיקום הסמן בעורך:</div>`;
             
@@ -83,10 +85,11 @@ class ChapterEditorManager {
             });
 
             sidebarContentEl.innerHTML = bankHtml;
+        } else if (this.sidebarMode === 'goals') {
+            this.renderChapterGoals(activeChap);
         }
 
         // טעינת הפרק הפעיל אל תוך העורך
-        const activeChap = state.chapters.find(c => c.id === state.activeChapterId) || state.chapters[0];
         if (activeChap) {
             state.activeChapterId = activeChap.id;
             if (editorEl.innerHTML !== (activeChap.content || '') && document.activeElement !== editorEl) {
@@ -96,7 +99,6 @@ class ChapterEditorManager {
                 titleDisplayEl.innerHTML = `📖 פרק ${activeChap.number}: ${activeChap.title}`;
             }
             this.updateStats(activeChap.content || '');
-            this.renderChapterGoals(activeChap);
         }
 
         // שמירה אוטומטית בעת הקלדה או מירקור
@@ -122,7 +124,24 @@ class ChapterEditorManager {
     selectChapter(chapId) {
         window.App.state.activeChapterId = chapId;
         window.App.saveState();
+        const sidebar = document.querySelector('.editor-sidebar');
+        if (sidebar && sidebar.classList.contains('mobile-open')) {
+            sidebar.classList.remove('mobile-open');
+            sidebar.style.display = '';
+        }
         this.render();
+    }
+
+    toggleMobileSidebar() {
+        const sidebar = document.querySelector('.editor-sidebar');
+        if (!sidebar) return;
+        if (sidebar.classList.contains('mobile-open')) {
+            sidebar.classList.remove('mobile-open');
+            sidebar.style.display = '';
+        } else {
+            sidebar.classList.add('mobile-open');
+            sidebar.style.display = 'flex';
+        }
     }
 
     insertText(textToInsert) {
@@ -246,29 +265,31 @@ class ChapterEditorManager {
     }
 
     renderChapterGoals(chapter) {
-        const container = document.getElementById('chapterGoalsContainer');
+        if (this.sidebarMode !== 'goals') return;
+        const container = document.getElementById('sidebarDynamicContent');
         if (!container || !chapter) return;
 
         if (!chapter.goals) chapter.goals = [];
 
         let html = `
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.8rem;">משימות ויעדים לפרק הנוכחי (ניתנים לעריכה):</div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.5rem; flex-wrap:wrap; gap:0.5rem;">
-                <div style="font-weight:700; color:#f8fafc; font-size:0.95rem; display:flex; align-items:center; gap:0.4rem;">
-                    🎯 יעדי ומשימות לפרק <span style="font-size:0.75rem; background:rgba(56,189,248,0.15); color:#38bdf8; padding:0.1rem 0.5rem; border-radius:12px; font-weight:normal;">ניתן לעריכה</span>
+                <div style="font-weight:700; color:#f8fafc; font-size:0.95rem;">
+                    🎯 יעדי פרק ${chapter.number}
                 </div>
                 <div style="font-size:0.8rem; color: #38bdf8; font-weight:600; background:rgba(0,0,0,0.3); padding:0.2rem 0.6rem; border-radius:8px;">
                     ${chapter.goals.filter(g => g.done).length} / ${chapter.goals.length} הושלמו
                 </div>
             </div>
-            <div style="display:flex; flex-direction:column; gap:0.5rem; max-height: 160px; overflow-y:auto; padding-right:0.3rem;">
+            <div style="display:flex; flex-direction:column; gap:0.5rem; max-height: calc(100vh - 280px); overflow-y:auto; padding-right:0.3rem; margin-bottom:0.8rem;">
         `;
 
         if (chapter.goals.length === 0) {
-            html += `<div style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding:0.5rem;">אין יעדים לפרק זה כרגע. הקלידו יעד חדש למטה והוסיפו!</div>`;
+            html += `<div style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding:1.5rem 0.5rem;">אין יעדים לפרק זה כרגע. הקלידו יעד חדש למטה והוסיפו!</div>`;
         } else {
             chapter.goals.forEach(goal => {
                 html += `
-                    <div style="display:flex; align-items:center; gap:0.6rem; background: rgba(0,0,0,0.25); padding:0.4rem 0.6rem; border-radius:6px; border: 1px solid rgba(255,255,255,0.04);">
+                    <div style="display:flex; align-items:center; gap:0.6rem; background: rgba(0,0,0,0.25); padding:0.5rem 0.6rem; border-radius:6px; border: 1px solid rgba(255,255,255,0.04);">
                         <input type="checkbox" ${goal.done ? 'checked' : ''} onchange="window.ChapterEditor.toggleGoal('${chapter.id}', '${goal.id}')" style="cursor:pointer; width:16px; height:16px; accent-color:#38bdf8;">
                         <input type="text" value="${goal.text.replace(/"/g, '&quot;')}" 
                                onchange="window.ChapterEditor.editGoalText('${chapter.id}', '${goal.id}', this.value)"
@@ -282,10 +303,10 @@ class ChapterEditorManager {
 
         html += `
             </div>
-            <div style="display:flex; gap:0.5rem; margin-top: 0.8rem;">
-                <input type="text" id="newGoalInput_${chapter.id}" class="form-control" placeholder="הקלידו יעד/משימה חדשה לפרק..." style="padding:0.4rem 0.8rem; font-size:0.85rem;">
+            <div style="display:flex; gap:0.5rem; margin-top: auto;">
+                <input type="text" id="newGoalInput_${chapter.id}" class="form-control" placeholder="הקלידו יעד חדש לפרק..." style="padding:0.4rem 0.8rem; font-size:0.85rem;">
                 <button class="btn btn-primary" onclick="window.ChapterEditor.addGoal('${chapter.id}')" style="padding:0.4rem 0.8rem; font-size:0.85rem; white-space:nowrap; background:linear-gradient(135deg,#0ea5e9,#2563eb);">
-                    + הוסף יעד
+                    + הוסף
                 </button>
             </div>
         `;

@@ -142,49 +142,52 @@
                 <div class="editor-layout">
                     
                     <!-- Chapter & Word Bank Sidebar -->
-                    <aside class="editor-sidebar" style="width: 320px;">
+                    <aside class="editor-sidebar">
                         <div class="sidebar-tabs-header">
                             <button id="sidebarBtn_chapters" class="sidebar-tab-btn active" onclick="window.ChapterEditor.switchSidebarMode('chapters')">📚 פרקים</button>
-                            <button id="sidebarBtn_wordbank" class="sidebar-tab-btn" onclick="window.ChapterEditor.switchSidebarMode('wordbank')">💡 בנק מילים ורעיונות</button>
+                            <button id="sidebarBtn_wordbank" class="sidebar-tab-btn" onclick="window.ChapterEditor.switchSidebarMode('wordbank')">💡 בנק מילים</button>
+                            <button id="sidebarBtn_goals" class="sidebar-tab-btn" onclick="window.ChapterEditor.switchSidebarMode('goals')">🎯 יעדים</button>
                         </div>
                         
                         <div id="sidebarDynamicContent" class="sidebar-scroll-area">
-                            <!-- Injected by js/editor.js (Chapters list or Word Bank) -->
+                            <!-- Injected by js/editor.js (Chapters list, Word Bank, or Goals) -->
                         </div>
                     </aside>
 
                     <!-- Main Editor -->
                     <div class="editor-main">
                         <div class="editor-toolbar">
-                            <div id="currentChapterTitleDisplay" style="font-weight: 700; font-size: 1.05rem; color: var(--accent-ice);">
-                                📖 בחר פרק לעריכה
+                            <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                                <button id="mobileSidebarBtn" class="btn" onclick="window.ChapterEditor.toggleMobileSidebar()" style="display:none; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:0.25rem 0.6rem; font-size:0.8rem;">
+                                    📚 תפריט פרקים וכלים ▼
+                                </button>
+                                <div id="currentChapterTitleDisplay" style="font-weight: 700; font-size: 1.05rem; color: var(--accent-ice);">
+                                    📖 בחר פרק לעריכה
+                                </div>
                             </div>
                             
-                            <!-- Highlight Tools -->
-                            <div class="highlight-tools" style="display:flex; gap:0.3rem; align-items:center; background: rgba(0,0,0,0.3); padding: 0.2rem 0.6rem; border-radius: 8px; flex-wrap:wrap;">
-                                <span style="font-size:0.75rem; color:var(--text-secondary);">מרקר קטע:</span>
-                                <button class="btn-highlight" style="background:#fef08a; color:#000;" onclick="window.ChapterEditor.highlightSelection('#fef08a')" title="סמן בצהוב">🖍️ צהוב</button>
-                                <button class="btn-highlight" style="background:#bae6fd; color:#000;" onclick="window.ChapterEditor.highlightSelection('#bae6fd')" title="סמן בתכלת">💎 תכלת</button>
-                                <button class="btn-highlight" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="window.ChapterEditor.highlightSelection('transparent')" title="נקה סימון מרקר">🧹 נקה</button>
-                            </div>
+                            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                <!-- Highlight Tools -->
+                                <div class="highlight-tools" style="display:flex; gap:0.3rem; align-items:center; background: rgba(0,0,0,0.3); padding: 0.2rem 0.6rem; border-radius: 8px; flex-wrap:wrap;">
+                                    <span style="font-size:0.75rem; color:var(--text-secondary);">מרקר:</span>
+                                    <button class="btn-highlight" style="background:#fef08a; color:#000;" onclick="window.ChapterEditor.highlightSelection('#fef08a')" title="סמן בצהוב">🖍️ צהוב</button>
+                                    <button class="btn-highlight" style="background:#bae6fd; color:#000;" onclick="window.ChapterEditor.highlightSelection('#bae6fd')" title="סמן בתכלת">💎 תכלת</button>
+                                    <button class="btn-highlight" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="window.ChapterEditor.highlightSelection('transparent')" title="נקה סימון">🧹 נקה</button>
+                                </div>
 
-                            <button class="btn" style="background:linear-gradient(135deg, #a855f7, #6366f1); color:#fff; padding:0.28rem 0.7rem; font-size:0.8rem; display:flex; align-items:center; gap:0.3rem; border:1px solid rgba(168,85,247,0.4);" onclick="window.ChapterEditor.addSelectionToWiki()" title="סמנו מילה בטקסט ולחצו כאן כדי להוסיף אותה ישירות למילון ללא מעבר מסך!">
-                                🌍+ הוסף מסומן למילון
-                            </button>
+                                <button class="btn" style="background:linear-gradient(135deg, #a855f7, #6366f1); color:#fff; padding:0.25rem 0.6rem; font-size:0.78rem; display:flex; align-items:center; gap:0.3rem; border:1px solid rgba(168,85,247,0.4);" onclick="window.ChapterEditor.addSelectionToWiki()" title="סמנו מילה בטקסט ולחצו כדי להוסיף למילון">
+                                    🌍+ למילון
+                                </button>
+                            </div>
 
                             <div class="editor-stats">
                                 <div>📝 <span id="statWordCount">0</span> מילים</div>
                                 <div>🔤 <span id="statCharCount">0</span> תווים</div>
                                 <div>⏱️ <span id="statReadTime">0 דק'</span></div>
-                                <button class="btn" onclick="window.ChapterEditor.toggleDistractionFree()" style="padding:0.3rem 0.7rem; font-size:0.8rem;">
+                                <button class="btn" onclick="window.ChapterEditor.toggleDistractionFree()" style="padding:0.25rem 0.6rem; font-size:0.78rem;">
                                     🧘‍♂️ פוקוס
                                 </button>
                             </div>
-                        </div>
-
-                        <!-- Chapter Goals Checklist -->
-                        <div id="chapterGoalsContainer" class="chapter-goals-box" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
-                            <!-- Injected by js/editor.js -->
                         </div>
 
                         <!-- Rich Text ContentEditable Area -->
