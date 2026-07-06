@@ -161,12 +161,16 @@
                             </div>
                             
                             <!-- Highlight Tools -->
-                            <div class="highlight-tools" style="display:flex; gap:0.3rem; align-items:center; background: rgba(0,0,0,0.3); padding: 0.2rem 0.6rem; border-radius: 8px;">
+                            <div class="highlight-tools" style="display:flex; gap:0.3rem; align-items:center; background: rgba(0,0,0,0.3); padding: 0.2rem 0.6rem; border-radius: 8px; flex-wrap:wrap;">
                                 <span style="font-size:0.75rem; color:var(--text-secondary);">מרקר קטע:</span>
                                 <button class="btn-highlight" style="background:#fef08a; color:#000;" onclick="window.ChapterEditor.highlightSelection('#fef08a')" title="סמן בצהוב">🖍️ צהוב</button>
                                 <button class="btn-highlight" style="background:#bae6fd; color:#000;" onclick="window.ChapterEditor.highlightSelection('#bae6fd')" title="סמן בתכלת">💎 תכלת</button>
                                 <button class="btn-highlight" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="window.ChapterEditor.highlightSelection('transparent')" title="נקה סימון מרקר">🧹 נקה</button>
                             </div>
+
+                            <button class="btn" style="background:linear-gradient(135deg, #a855f7, #6366f1); color:#fff; padding:0.28rem 0.7rem; font-size:0.8rem; display:flex; align-items:center; gap:0.3rem; border:1px solid rgba(168,85,247,0.4);" onclick="window.ChapterEditor.addSelectionToWiki()" title="סמנו מילה בטקסט ולחצו כאן כדי להוסיף אותה ישירות למילון ללא מעבר מסך!">
+                                🌍+ הוסף מסומן למילון
+                            </button>
 
                             <div class="editor-stats">
                                 <div>📝 <span id="statWordCount">0</span> מילים</div>

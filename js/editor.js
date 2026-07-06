@@ -170,6 +170,27 @@ class ChapterEditorManager {
         window.App.showToast(color === 'transparent' ? 'המרקר הוסר' : 'הקטע סומן במרקר!', '🖍️');
     }
 
+    addSelectionToWiki() {
+        const selection = window.getSelection().toString().trim();
+        if (!selection) {
+            window.App.showToast('סמנו קודם מילה או ביטוי בתוך טקסט הפרק!', '⚠️');
+            return;
+        }
+
+        const form = document.getElementById('newWikiForm');
+        if (form) {
+            form.reset();
+            if (form.editId) form.editId.value = '';
+            if (form.title) form.title.value = selection;
+            if (form.description) form.description.focus();
+        }
+
+        const titleEl = document.querySelector('#newWikiModal h3');
+        if (titleEl) titleEl.innerText = '🌍 הוספת מושג חדש למילון (מתוך הפרק)';
+
+        window.App.openModal('newWikiModal');
+    }
+
     stripHtml(html) {
         if (!html) return '';
         const tmp = document.createElement('DIV');
