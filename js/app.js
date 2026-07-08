@@ -244,6 +244,45 @@ class AppManager {
         document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
     }
 
+    moveChapter(index, direction, e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        const chapters = this.state.chapters;
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= chapters.length) return;
+
+        const moved = chapters.splice(index, 1)[0];
+        chapters.splice(newIndex, 0, moved);
+
+        chapters.forEach((c, idx) => {
+            c.number = idx + 1;
+        });
+
+        this.saveState();
+        this.renderCurrentTab();
+        if (window.ChapterEditor && this.state.activeTab === 'editor') {
+            window.ChapterEditor.renderSidebarContent();
+        }
+        this.showToast(`סדר הפרקים עודכן בהצלחה!`, "🗺️");
+    }
+
+    reorderChapters(oldIndex, newIndex) {
+        if (oldIndex === newIndex) return;
+        const chapters = this.state.chapters;
+        const moved = chapters.splice(oldIndex, 1)[0];
+        chapters.splice(newIndex, 0, moved);
+
+        chapters.forEach((c, idx) => {
+            c.number = idx + 1;
+        });
+
+        this.saveState();
+        this.renderCurrentTab();
+        if (window.ChapterEditor && this.state.activeTab === 'editor') {
+            window.ChapterEditor.renderSidebarContent();
+        }
+        this.showToast("סדר הפרקים עודכן בהצלחה", "🗺️");
+    }
+
     openEditIdeaModal(ideaId) {
         const idea = this.state.ideas.find(i => i.id === ideaId);
         if (!idea) return;

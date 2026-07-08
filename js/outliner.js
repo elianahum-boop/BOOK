@@ -29,11 +29,14 @@ class OutlinerManager {
             return `
                 <div class="chapter-node" data-id="${chap.id}">
                     <div class="chapter-header">
-                        <div class="chapter-title-area">
-                            <span class="chapter-num">פרק ${chap.number}</span>
+                        <div class="chapter-title-area" style="display:flex; align-items:center; gap:0.5rem;">
+                            <span class="drag-handle-outliner" title="גרור לשינוי סדר הפרק" style="cursor:grab; font-size:1.1rem; opacity:0.7;">⋮⋮</span>
+                            <span class="chapter-num" style="cursor:grab;">פרק ${chap.number}</span>
                             <h3 class="chapter-title">${chap.title}</h3>
                         </div>
-                        <div style="display: flex; gap: 0.6rem;">
+                        <div style="display: flex; gap: 0.5rem; align-items:center;">
+                            <button class="icon-btn" onclick="window.App.moveChapter(${index}, -1, event)" title="הזז פרק למעלה" style="font-size:0.9rem; padding:0.25rem 0.4rem;">⬆️</button>
+                            <button class="icon-btn" onclick="window.App.moveChapter(${index}, 1, event)" title="הזז פרק למטה" style="font-size:0.9rem; padding:0.25rem 0.4rem;">⬇️</button>
                             <button class="btn btn-primary" onclick="window.Outliner.editChapter('${chap.id}')" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                                 ✍️ כתוב/ערוך פרק
                             </button>
@@ -69,24 +72,10 @@ class OutlinerManager {
 
         this.sortable = window.Sortable.create(this.containerEl, {
             animation: 150,
-            handle: '.chapter-num',
+            handle: '.chapter-header',
             onEnd: (evt) => {
-                const oldIndex = evt.oldIndex;
-                const newIndex = evt.newIndex;
-                if (oldIndex === newIndex) return;
-
-                const state = window.App.state;
-                const moved = state.chapters.splice(oldIndex, 1)[0];
-                state.chapters.splice(newIndex, 0, moved);
-
-                // עדכון מספרי הפרקים לפי הסדר החדש
-                state.chapters.forEach((c, idx) => {
-                    c.number = idx + 1;
-                });
-
-                window.App.saveState();
-                this.render();
-                window.App.showToast("סדר הפרקים עודכן", "🗺️");
+                if (evt.oldIndex === evt.newIndex) return;
+                window.App.reorderChapters(evt.oldIndex, evt.newIndex);
             }
         });
     }

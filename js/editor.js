@@ -20,15 +20,22 @@ class ChapterEditorManager {
 
         // רינדור סרגל הצד (פרקים, בנק מילים או יעדים)
         if (this.sidebarMode === 'chapters') {
-            sidebarContentEl.innerHTML = state.chapters.map(chap => {
+            sidebarContentEl.innerHTML = state.chapters.map((chap, idx) => {
                 const isActive = chap.id === state.activeChapterId;
                 const plain = this.stripHtml(chap.content || '');
                 const words = plain.trim() ? plain.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
                 return `
-                    <div class="chapter-list-item ${isActive ? 'active' : ''}" onclick="window.ChapterEditor.selectChapter('${chap.id}')">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <strong>פרק ${chap.number}</strong>
-                            <span style="font-size:0.75rem; opacity:0.8;">${words} מיל'</span>
+                    <div class="chapter-list-item ${isActive ? 'active' : ''}" data-id="${chap.id}" onclick="window.ChapterEditor.selectChapter('${chap.id}')">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.2rem;">
+                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                                <span class="drag-handle" title="גרור לשינוי סדר" style="cursor:grab; opacity:0.7; font-size:0.95rem;">⋮⋮</span>
+                                <strong>פרק ${chap.number}</strong>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:0.2rem;">
+                                <button class="icon-btn" onclick="window.App.moveChapter(${idx}, -1, event)" title="הזז פרק אחד למעלה" style="font-size:0.78rem; padding:0.1rem 0.25rem;">⬆️</button>
+                                <button class="icon-btn" onclick="window.App.moveChapter(${idx}, 1, event)" title="הזז פרק אחד למטה" style="font-size:0.78rem; padding:0.1rem 0.25rem;">⬇️</button>
+                                <span style="font-size:0.72rem; opacity:0.85; margin-right:0.2rem;">${words} מיל'</span>
+                            </div>
                         </div>
                         <div style="font-size:0.85rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                             ${chap.title}
@@ -36,6 +43,20 @@ class ChapterEditorManager {
                     </div>
                 `;
             }).join('');
+
+            if (window.Sortable) {
+                if (this._sidebarSortable) {
+                    try { this._sidebarSortable.destroy(); } catch(e){}
+                }
+                this._sidebarSortable = window.Sortable.create(sidebarContentEl, {
+                    animation: 150,
+                    handle: '.drag-handle',
+                    onEnd: (evt) => {
+                        if (evt.oldIndex === evt.newIndex) return;
+                        window.App.reorderChapters(evt.oldIndex, evt.newIndex);
+                    }
+                });
+            }
         } else if (this.sidebarMode === 'wordbank') {
             // בנק מילים ורעיונות
             let bankHtml = `<div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.8rem;">לחץ "➕ הוסף" כדי לשתול שם, מושג או רעיון במיקום הסמן בעורך:</div>`;
